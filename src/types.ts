@@ -31,14 +31,18 @@ export interface AttendanceRecord {
   status: AttendanceStatus;
   remarks?: string;
   recordedBy: string; // teacher name or id
+  timeIn?: string;
 }
 
 export interface SubjectGrade {
   subject: string;
+  subjectName?: string;
   marksObtained: number;
   totalMarks: number;
   grade: string; // A+, A, B, etc.
   point: number; // 4.0, 3.7, etc.
+  gradePoint?: number;
+  letterGrade?: string;
   remarks: string;
 }
 
@@ -48,13 +52,17 @@ export interface GradeReport {
   studentName: string;
   rollNo: string;
   grade: string;
+  examName?: string;
   term: 'Midterm 2026' | 'Final Term 2026' | 'Term 1 Assessment' | 'Annual Evaluation';
   academicYear: string;
   subjects: SubjectGrade[];
   totalScore: number;
   maxScore: number;
+  totalObtainedMarks?: number;
+  totalPossibleMarks?: number;
   gpa: number;
   overallGrade: string;
+  letterGrade?: string;
   positionInClass: number;
   attendancePercentage: number;
   conductRemarks: string;
@@ -62,6 +70,7 @@ export interface GradeReport {
   principalRemarks: string;
   publishedDate: string;
   isPublished: boolean;
+  status?: 'passed' | 'failed' | 'published' | 'excellent' | string;
 }
 
 export type EnrollmentStatus = 'pending' | 'under_review' | 'approved' | 'rejected' | 'enrolled';
@@ -96,7 +105,7 @@ export interface MessageNotification {
   recipientName?: string;
   title: string;
   content: string;
-  category: 'attendance_alert' | 'grade_published' | 'emergency_circular' | 'fee_reminder' | 'general' | 'assignment';
+  category: 'attendance_alert' | 'grade_published' | 'emergency_circular' | 'emergency_closure' | 'fee_reminder' | 'general' | 'assignment';
   priority: 'normal' | 'urgent' | 'announcement';
   createdAt: string;
   isAutomated: boolean;
@@ -151,4 +160,143 @@ export interface ClassSchedule {
     teacher: string;
     room: string;
   }[];
+}
+
+// 1. Fee Breakdown & Payment
+export interface FeeBreakdown {
+  tuitionFee: number;
+  examFee: number;
+  labFee: number;
+  libraryFee: number;
+  developmentFee: number;
+  lateFine: number;
+  discount: number;
+}
+
+// 2. Online Quiz & Exam System
+export interface QuizQuestion {
+  id: string;
+  question: string;
+  options: string[];
+  correctAnswerIndex: number;
+  explanation: string;
+  marks: number;
+}
+
+export interface OnlineQuiz {
+  id: string;
+  title: string;
+  subject: string;
+  grade: string;
+  durationMinutes: number;
+  totalMarks: number;
+  passingMarks: number;
+  teacherName: string;
+  status: 'active' | 'upcoming' | 'completed';
+  questions: QuizQuestion[];
+  instructions?: string;
+}
+
+export interface QuizSubmission {
+  id: string;
+  quizId: string;
+  quizTitle: string;
+  studentId: string;
+  studentName: string;
+  rollNo: string;
+  score: number;
+  totalMarks: number;
+  percentage: number;
+  status: 'passed' | 'failed';
+  submittedAt: string;
+  answers: Record<string, number>;
+}
+
+// 3. Library Management
+export type LibraryCategory =
+  | 'Science'
+  | 'Mathematics'
+  | 'Literature'
+  | 'History'
+  | 'Computer Science'
+  | 'General'
+  | 'Physics'
+  | 'Chemistry'
+  | 'ICT'
+  | 'Biology';
+
+export interface LibraryBook {
+  id: string;
+  title: string;
+  author: string;
+  isbn: string;
+  category: LibraryCategory;
+  totalCopies: number;
+  availableCopies: number;
+  rackLocation: string;
+  coverImage?: string;
+}
+
+export interface BookIssue {
+  id: string;
+  bookId: string;
+  bookTitle: string;
+  studentId: string;
+  studentName: string;
+  rollNo: string;
+  issueDate: string;
+  dueDate: string;
+  returnDate?: string;
+  fineAmount: number;
+  status: 'borrowed' | 'returned' | 'overdue';
+}
+
+// 4. Transport Fleet & Tracking
+export interface BusStop {
+  stopName: string;
+  pickupTime: string;
+  dropTime: string;
+}
+
+export interface TransportBus {
+  id: string;
+  busNumber: string;
+  plateNumber?: string;
+  routeName: string;
+  driverName: string;
+  driverPhone: string;
+  helperName: string;
+  helperPhone: string;
+  capacity: number;
+  activeStudentsCount: number;
+  stoppages: BusStop[];
+  status: 'on_route' | 'in_campus' | 'maintenance' | 'arrived_campus';
+  currentLocation?: string;
+}
+
+// 5. Exam Routine / Schedule
+export interface ExamRoutineItem {
+  id: string;
+  term: string;
+  examName: string;
+  grade: string;
+  subject: string;
+  date: string;
+  time: string;
+  room: string;
+  syllabus: string;
+  totalMarks: number;
+}
+
+// 6. SMS & WhatsApp Broadcast
+export interface BroadcastMessageLog {
+  id: string;
+  type: 'sms' | 'whatsapp';
+  category: 'attendance_alert' | 'exam_result' | 'fee_reminder' | 'emergency_circular' | 'emergency_closure' | 'general';
+  recipientGroup: string;
+  recipientCount: number;
+  message: string;
+  sentAt: string;
+  senderName: string;
+  status: 'delivered' | 'sent' | 'failed';
 }

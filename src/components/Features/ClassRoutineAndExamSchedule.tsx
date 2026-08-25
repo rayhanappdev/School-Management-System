@@ -1,0 +1,1 @@
+export { ClassRoutineAndExamSchedule } from './ClassRoutineAndRxamSchedule';

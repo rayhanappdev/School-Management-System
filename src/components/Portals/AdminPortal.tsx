@@ -3,6 +3,13 @@ import { useSchool } from '../../context/SchoolContext';
 import { User, EnrollmentApplication, FeeInvoice, Role } from '../../types';
 import { MessagingCenter } from '../Common/MessagingCenter';
 import { ReceiptModal } from '../Common/ReceiptModal';
+import { FeesPaymentGateway } from '../Features/FeesPaymentGateway';
+import { IdAndAdmitCardGenerator } from '../Features/IdAndAdmitCardGenerator';
+import { OnlineExamQuiz } from '../Features/OnlineExamQuiz';
+import { LibraryAndTransport } from '../Features/LibraryAndTransport';
+import { ClassRoutineAndExamSchedule } from '../Features/ClassRoutineAndExamSchedule';
+import { SmsWhatsAppGateway } from '../Features/SmsWhatsAppGateway';
+import { AiStudyAndTeacherAssistant } from '../Features/AiStudyAndTeacherAssistant';
 import {
   Users,
   UserPlus,
@@ -25,7 +32,11 @@ import {
   Download,
   CreditCard,
   Building,
-  Check
+  Check,
+  QrCode,
+  Bus,
+  MessageSquare,
+  Bot
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -59,7 +70,21 @@ export const AdminPortal: React.FC = () => {
     addNotice,
   } = useSchool();
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'enrollments' | 'users' | 'finance' | 'messaging' | 'notices'>('overview');
+  const [activeTab, setActiveTab] = useState<
+    | 'overview'
+    | 'enrollments'
+    | 'users'
+    | 'finance'
+    | 'fees_gateway'
+    | 'id_cards'
+    | 'online_exams'
+    | 'library_transport'
+    | 'class_routine'
+    | 'sms_gateway'
+    | 'ai_assistant'
+    | 'messaging'
+    | 'notices'
+  >('overview');
   const [selectedReceipt, setSelectedReceipt] = useState<FeeInvoice | null>(null);
 
   // User management form state
@@ -273,11 +298,17 @@ export const AdminPortal: React.FC = () => {
       <div className="flex flex-wrap items-center gap-2 pb-2 border-b border-slate-200">
         {[
           { id: 'overview', label: '📊 System Analytics', count: null },
-          { id: 'enrollments', label: '📝 Enrollment Queue', count: pendingEnrollments },
-          { id: 'users', label: '👥 User & Staff Directory', count: users.length },
-          { id: 'finance', label: '💳 Fee & Billing Desk', count: invoices.length },
-          { id: 'messaging', label: '📢 Automated Messaging', count: null },
-          { id: 'notices', label: '📰 Publish Notices', count: notices.length },
+          { id: 'enrollments', label: '📝 Admissions', count: pendingEnrollments },
+          { id: 'users', label: '👥 Users Directory', count: users.length },
+          { id: 'fees_gateway', label: '💳 Fee & Billing Desk', count: null },
+          { id: 'id_cards', label: '📄 ID & Admit Cards', count: null },
+          { id: 'online_exams', label: '📝 Quizzes & Exams', count: null },
+          { id: 'library_transport', label: '🚌 Library & Buses', count: null },
+          { id: 'class_routine', label: '📅 Routine & Schedules', count: null },
+          { id: 'sms_gateway', label: '📱 SMS / WhatsApp', count: null },
+          { id: 'ai_assistant', label: '🤖 AI Exam Author', count: null },
+          { id: 'messaging', label: '📢 Internal Comms', count: null },
+          { id: 'notices', label: '📰 Notices', count: notices.length },
         ].map((tab) => (
           <button
             key={tab.id}
@@ -739,6 +770,27 @@ export const AdminPortal: React.FC = () => {
           </form>
         </div>
       )}
+
+      {/* Tab 7: Fees & Billing Gateway */}
+      {activeTab === 'fees_gateway' && <FeesPaymentGateway />}
+
+      {/* Tab 8: ID Card & Admit Card Generator */}
+      {activeTab === 'id_cards' && <IdAndAdmitCardGenerator />}
+
+      {/* Tab 9: Online Exams & Quizzes */}
+      {activeTab === 'online_exams' && <OnlineExamQuiz />}
+
+      {/* Tab 10: Library & Transport Bus Fleet */}
+      {activeTab === 'library_transport' && <LibraryAndTransport />}
+
+      {/* Tab 11: Class Routine & Exam Schedule */}
+      {activeTab === 'class_routine' && <ClassRoutineAndExamSchedule />}
+
+      {/* Tab 12: SMS & WhatsApp Broadcast System */}
+      {activeTab === 'sms_gateway' && <SmsWhatsAppGateway />}
+
+      {/* Tab 13: AI Assistant (Question Maker & Lesson Planner) */}
+      {activeTab === 'ai_assistant' && <AiStudyAndTeacherAssistant defaultMode="teacher" />}
 
       {/* Add User Modal */}
       {showAddUserModal && (

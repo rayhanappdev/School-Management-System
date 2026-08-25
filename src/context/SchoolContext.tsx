@@ -12,6 +12,13 @@ import {
   NoticeItem,
   ClassSchedule,
   SubjectGrade,
+  OnlineQuiz,
+  QuizSubmission,
+  LibraryBook,
+  BookIssue,
+  TransportBus,
+  ExamRoutineItem,
+  BroadcastMessageLog,
 } from '../types';
 import {
   INITIAL_USERS,
@@ -23,6 +30,12 @@ import {
   INITIAL_NOTICES,
   INITIAL_EVENTS,
   INITIAL_SCHEDULE,
+  INITIAL_QUIZZES,
+  INITIAL_LIBRARY_BOOKS,
+  INITIAL_BOOK_ISSUES,
+  INITIAL_TRANSPORT_BUSES,
+  INITIAL_EXAM_ROUTINE,
+  INITIAL_BROADCAST_LOGS,
 } from '../data/initialData';
 
 interface SchoolContextType {
@@ -40,6 +53,10 @@ interface SchoolContextType {
   setCurrentView: (view: 'website' | 'portal') => void;
   activePortalTab: string;
   setActivePortalTab: (tab: string) => void;
+
+  // Active Feature Modal Popup (Direct Launcher)
+  activeModuleModal: string | null;
+  setActiveModuleModal: (modal: string | null) => void;
 
   // Login Modal Controls
   isLoginModalOpen: boolean;
@@ -60,6 +77,13 @@ interface SchoolContextType {
   notices: NoticeItem[];
   events: SchoolEvent[];
   schedules: ClassSchedule[];
+  quizzes: OnlineQuiz[];
+  quizSubmissions: QuizSubmission[];
+  libraryBooks: LibraryBook[];
+  bookIssues: BookIssue[];
+  buses: TransportBus[];
+  examRoutines: ExamRoutineItem[];
+  broadcastLogs: BroadcastMessageLog[];
 
   // User Actions
   addUser: (user: Omit<User, 'id'>) => User;
@@ -94,6 +118,30 @@ interface SchoolContextType {
   payInvoice: (invoiceId: string, method: string) => void;
   generateInvoice: (invoice: Omit<FeeInvoice, 'id'>) => void;
 
+  // Online Quizzes
+  createQuiz: (quiz: Omit<OnlineQuiz, 'id'>) => void;
+  submitQuiz: (submission: Omit<QuizSubmission, 'id' | 'submittedAt'>) => QuizSubmission;
+
+  // Library Management
+  issueBook: (bookId: string, studentId: string, days: number) => void;
+  returnBook: (issueId: string) => void;
+  addBook: (book: Omit<LibraryBook, 'id' | 'availableCopies'>) => void;
+
+  // Transport Management
+  updateBusStatus: (busId: string, status: TransportBus['status'], location?: string) => void;
+
+  // Exam Routine
+  addExamRoutine: (item: Omit<ExamRoutineItem, 'id'>) => void;
+
+  // SMS & WhatsApp Broadcast
+  sendBroadcastMessage: (
+    type: 'sms' | 'whatsapp',
+    category: BroadcastMessageLog['category'],
+    recipientGroup: string,
+    recipientCount: number,
+    message: string
+  ) => void;
+
   // School Web Management
   addNotice: (notice: Omit<NoticeItem, 'id' | 'date'>) => void;
   addEvent: (event: Omit<SchoolEvent, 'id'>) => void;
@@ -127,6 +175,7 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [currentUser, setCurrentUser] = useState<User | null>(() => loadStorage('auth_user', null));
   const [activeView, setActiveView] = useState<'website' | 'portal'>('website');
   const [activePortalTab, setActivePortalTab] = useState<string>('dashboard');
+  const [activeModuleModal, setActiveModuleModal] = useState<string | null>(null);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState<boolean>(false);
   const [loginModalRole, setLoginModalRole] = useState<Role>('student');
 
@@ -144,6 +193,15 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [events, setEvents] = useState<SchoolEvent[]>(() => loadStorage('events', INITIAL_EVENTS));
   const [schedules] = useState<ClassSchedule[]>(INITIAL_SCHEDULE);
 
+  // New modules states
+  const [quizzes, setQuizzes] = useState<OnlineQuiz[]>(() => loadStorage('quizzes', INITIAL_QUIZZES));
+  const [quizSubmissions, setQuizSubmissions] = useState<QuizSubmission[]>(() => loadStorage('quiz_subs', []));
+  const [libraryBooks, setLibraryBooks] = useState<LibraryBook[]>(() => loadStorage('lib_books', INITIAL_LIBRARY_BOOKS));
+  const [bookIssues, setBookIssues] = useState<BookIssue[]>(() => loadStorage('book_issues', INITIAL_BOOK_ISSUES));
+  const [buses, setBuses] = useState<TransportBus[]>(() => loadStorage('buses', INITIAL_TRANSPORT_BUSES));
+  const [examRoutines, setExamRoutines] = useState<ExamRoutineItem[]>(() => loadStorage('exam_routines', INITIAL_EXAM_ROUTINE));
+  const [broadcastLogs, setBroadcastLogs] = useState<BroadcastMessageLog[]>(() => loadStorage('broadcast_logs', INITIAL_BROADCAST_LOGS));
+
   // Sync to localStorage
   useEffect(() => saveStorage('lang', language), [language]);
   useEffect(() => saveStorage('auth_user', currentUser), [currentUser]);
@@ -155,6 +213,13 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   useEffect(() => saveStorage('invoices', invoices), [invoices]);
   useEffect(() => saveStorage('notices', notices), [notices]);
   useEffect(() => saveStorage('events', events), [events]);
+  useEffect(() => saveStorage('quizzes', quizzes), [quizzes]);
+  useEffect(() => saveStorage('quiz_subs', quizSubmissions), [quizSubmissions]);
+  useEffect(() => saveStorage('lib_books', libraryBooks), [libraryBooks]);
+  useEffect(() => saveStorage('book_issues', bookIssues), [bookIssues]);
+  useEffect(() => saveStorage('buses', buses), [buses]);
+  useEffect(() => saveStorage('exam_routines', examRoutines), [examRoutines]);
+  useEffect(() => saveStorage('broadcast_logs', broadcastLogs), [broadcastLogs]);
 
   const setLanguage = (lang: 'en' | 'bn') => setLanguageState(lang);
 
@@ -556,6 +621,142 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setEvents((prev) => [newEvent, ...prev]);
   };
 
+  // Online Quizzes
+  const createQuiz = (quizData: Omit<OnlineQuiz, 'id'>) => {
+    const newQuiz: OnlineQuiz = {
+      ...quizData,
+      id: `quiz_${Date.now()}`,
+    };
+    setQuizzes((prev) => [newQuiz, ...prev]);
+
+    sendMessage({
+      senderId: currentUser?.id || 'sys_exam',
+      senderName: currentUser?.name || 'Academic Controller',
+      senderRole: currentUser?.role || 'teacher',
+      recipientType: 'grade',
+      recipientTarget: quizData.grade,
+      title: `📝 New Online Quiz Available: ${quizData.title}`,
+      content: `A new ${quizData.subject} quiz has been published for ${quizData.grade}. Duration: ${quizData.durationMinutes} mins. Total Marks: ${quizData.totalMarks}. Access your Online Quiz desk to participate.`,
+      category: 'assignment',
+      priority: 'normal',
+      isAutomated: true,
+    });
+  };
+
+  const submitQuiz = (subData: Omit<QuizSubmission, 'id' | 'submittedAt'>): QuizSubmission => {
+    const newSub: QuizSubmission = {
+      ...subData,
+      id: `sub_${Date.now()}`,
+      submittedAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
+    };
+    setQuizSubmissions((prev) => [newSub, ...prev]);
+    return newSub;
+  };
+
+  // Library Management
+  const issueBook = (bookId: string, studentId: string, days: number = 14) => {
+    const book = libraryBooks.find((b) => b.id === bookId);
+    const student = users.find((u) => u.id === studentId);
+    if (!book || !student || book.availableCopies <= 0) return;
+
+    const issueDate = new Date().toISOString().split('T')[0];
+    const dueDateObj = new Date();
+    dueDateObj.setDate(dueDateObj.getDate() + days);
+    const dueDate = dueDateObj.toISOString().split('T')[0];
+
+    const newIssue: BookIssue = {
+      id: `iss_${Date.now()}`,
+      bookId: book.id,
+      bookTitle: book.title,
+      studentId: student.id,
+      studentName: student.name,
+      rollNo: student.rollNo || '2026-1001',
+      issueDate,
+      dueDate,
+      fineAmount: 0,
+      status: 'borrowed',
+    };
+
+    setBookIssues((prev) => [newIssue, ...prev]);
+    setLibraryBooks((prev) =>
+      prev.map((b) => (b.id === bookId ? { ...b, availableCopies: Math.max(0, b.availableCopies - 1) } : b))
+    );
+
+    sendMessage({
+      senderId: 'sys_library',
+      senderName: 'Central Apex Library',
+      senderRole: 'admin',
+      recipientType: 'individual',
+      recipientTarget: student.id,
+      recipientName: student.name,
+      title: `📚 Book Borrowed: "${book.title}"`,
+      content: `You have successfully borrowed "${book.title}" (Rack: ${book.rackLocation}). Return Due Date: ${dueDate}. Please return on time to avoid late fines.`,
+      category: 'general',
+      priority: 'normal',
+      isAutomated: true,
+    });
+  };
+
+  const returnBook = (issueId: string) => {
+    const issue = bookIssues.find((i) => i.id === issueId);
+    if (!issue) return;
+
+    const returnDate = new Date().toISOString().split('T')[0];
+    setBookIssues((prev) =>
+      prev.map((i) => (i.id === issueId ? { ...i, status: 'returned', returnDate } : i))
+    );
+    setLibraryBooks((prev) =>
+      prev.map((b) => (b.id === issue.bookId ? { ...b, availableCopies: Math.min(b.totalCopies, b.availableCopies + 1) } : b))
+    );
+  };
+
+  const addBook = (bookData: Omit<LibraryBook, 'id' | 'availableCopies'>) => {
+    const newBook: LibraryBook = {
+      ...bookData,
+      id: `bk_${Date.now()}`,
+      availableCopies: bookData.totalCopies,
+    };
+    setLibraryBooks((prev) => [newBook, ...prev]);
+  };
+
+  // Transport Management
+  const updateBusStatus = (busId: string, status: TransportBus['status'], location?: string) => {
+    setBuses((prev) =>
+      prev.map((b) => (b.id === busId ? { ...b, status, currentLocation: location || b.currentLocation } : b))
+    );
+  };
+
+  // Exam Routine
+  const addExamRoutine = (routineData: Omit<ExamRoutineItem, 'id'>) => {
+    const newRoutine: ExamRoutineItem = {
+      ...routineData,
+      id: `ex_${Date.now()}`,
+    };
+    setExamRoutines((prev) => [...prev, newRoutine]);
+  };
+
+  // SMS & WhatsApp Broadcast
+  const sendBroadcastMessage = (
+    type: 'sms' | 'whatsapp',
+    category: BroadcastMessageLog['category'],
+    recipientGroup: string,
+    recipientCount: number,
+    message: string
+  ) => {
+    const newLog: BroadcastMessageLog = {
+      id: `log_${Date.now()}`,
+      type,
+      category,
+      recipientGroup,
+      recipientCount,
+      message,
+      sentAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
+      senderName: currentUser?.name || 'School Administration',
+      status: 'delivered',
+    };
+    setBroadcastLogs((prev) => [newLog, ...prev]);
+  };
+
   const resetAllData = () => {
     localStorage.clear();
     setUsers(INITIAL_USERS);
@@ -566,6 +767,13 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setInvoices(INITIAL_FEE_INVOICES);
     setNotices(INITIAL_NOTICES);
     setEvents(INITIAL_EVENTS);
+    setQuizzes(INITIAL_QUIZZES);
+    setQuizSubmissions([]);
+    setLibraryBooks(INITIAL_LIBRARY_BOOKS);
+    setBookIssues(INITIAL_BOOK_ISSUES);
+    setBuses(INITIAL_TRANSPORT_BUSES);
+    setExamRoutines(INITIAL_EXAM_ROUTINE);
+    setBroadcastLogs(INITIAL_BROADCAST_LOGS);
     setCurrentUser(null);
     setActiveView('website');
   };
@@ -588,6 +796,8 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         setCurrentView: setActiveView,
         activePortalTab,
         setActivePortalTab,
+        activeModuleModal,
+        setActiveModuleModal,
         isLoginModalOpen,
         setIsLoginModalOpen,
         setLoginModalOpen,
@@ -604,6 +814,13 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         notices,
         events,
         schedules,
+        quizzes,
+        quizSubmissions,
+        libraryBooks,
+        bookIssues,
+        buses,
+        examRoutines,
+        broadcastLogs,
         addUser,
         updateUser,
         deleteUser,
@@ -619,6 +836,14 @@ export const SchoolProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         markAllNotificationsAsRead,
         payInvoice,
         generateInvoice,
+        createQuiz,
+        submitQuiz,
+        issueBook,
+        returnBook,
+        addBook,
+        updateBusStatus,
+        addExamRoutine,
+        sendBroadcastMessage,
         addNotice,
         addEvent,
         resetAllData,

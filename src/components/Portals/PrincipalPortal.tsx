@@ -3,6 +3,10 @@ import { useSchool } from '../../context/SchoolContext';
 import { GradeReport } from '../../types';
 import { ReportCardModal } from '../Common/ReportCardModal';
 import { MessagingCenter } from '../Common/MessagingCenter';
+import { SmsWhatsAppGateway } from '../Features/SmsWhatsAppGateway';
+import { ClassRoutineAndExamSchedule } from '../Features/ClassRoutineAndExamSchedule';
+import { LibraryAndTransport } from '../Features/LibraryAndTransport';
+import { AiStudyAndTeacherAssistant } from '../Features/AiStudyAndTeacherAssistant';
 import {
   Award,
   BookOpen,
@@ -17,7 +21,10 @@ import {
   ShieldCheck,
   Send,
   Calendar,
-  Radio
+  Radio,
+  MessageSquare,
+  Bus,
+  Bot
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -35,7 +42,17 @@ import {
 export const PrincipalPortal: React.FC = () => {
   const { users, gradeReports, publishGradeReport, attendance, sendMessage, notices, language } = useSchool();
 
-  const [activeTab, setActiveTab] = useState<'analytics' | 'grades' | 'attendance' | 'faculty' | 'broadcast'>('analytics');
+  const [activeTab, setActiveTab] = useState<
+    | 'analytics'
+    | 'grades'
+    | 'attendance'
+    | 'faculty'
+    | 'sms_broadcast'
+    | 'routines_exams'
+    | 'library_buses'
+    | 'ai_oversight'
+    | 'broadcast'
+  >('analytics');
   const [selectedReportForView, setSelectedReportForView] = useState<GradeReport | null>(null);
 
   const students = users.filter((u) => u.role === 'student');
@@ -141,10 +158,14 @@ export const PrincipalPortal: React.FC = () => {
       <div className="flex flex-wrap items-center gap-2 pb-2 border-b border-slate-200">
         {[
           { id: 'analytics', label: '📈 Executive Analytics' },
-          { id: 'grades', label: `🏆 Gradebook Review & Certification (${pendingCertificationCount} Pending)` },
+          { id: 'grades', label: `🏆 Gradebook Review (${pendingCertificationCount} Pending)` },
           { id: 'attendance', label: '📋 Attendance Oversight' },
+          { id: 'sms_broadcast', label: '📱 SMS / WhatsApp Broadcast' },
+          { id: 'routines_exams', label: '📅 Routine & Exam Schedules' },
+          { id: 'library_buses', label: '🚌 Library & Transport' },
+          { id: 'ai_oversight', label: '🤖 AI Lesson Plans & Question Bank' },
           { id: 'faculty', label: '🎓 Faculty Council' },
-          { id: 'broadcast', label: '📢 Principal Broadcast Desk' },
+          { id: 'broadcast', label: '📢 Principal Internal Circulars' },
         ].map((tab) => (
           <button
             key={tab.id}
@@ -419,7 +440,19 @@ export const PrincipalPortal: React.FC = () => {
         </div>
       )}
 
-      {/* Tab 5: Principal Broadcast Desk */}
+      {/* Tab 5: SMS / WhatsApp Broadcast */}
+      {activeTab === 'sms_broadcast' && <SmsWhatsAppGateway />}
+
+      {/* Tab 6: Class Routine & Exam Schedule */}
+      {activeTab === 'routines_exams' && <ClassRoutineAndExamSchedule />}
+
+      {/* Tab 7: Library & Transport Bus Fleet */}
+      {activeTab === 'library_buses' && <LibraryAndTransport />}
+
+      {/* Tab 8: AI Academic Oversight */}
+      {activeTab === 'ai_oversight' && <AiStudyAndTeacherAssistant defaultMode="teacher" />}
+
+      {/* Tab 9: Principal Broadcast Desk */}
       {activeTab === 'broadcast' && <MessagingCenter />}
 
       {/* Official Report Card Printable Modal */}

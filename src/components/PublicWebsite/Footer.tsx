@@ -69,10 +69,7 @@ export const Footer: React.FC = () => {
 
         {/* Bottom Bar */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-slate-500">
-          <p>© {new Date().getFullYear()} Apex International Academy. All rights reserved.</p>
-          <p className="flex items-center gap-1">
-            Built with integrity & modern digital school management technology.
-          </p>
+          <p>© {new Date().getFullYear()} Apex International Academy. All rights reserved. Foolcodertechnologies</p>
         </div>
       </div>
     </footer>

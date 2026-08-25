@@ -3,6 +3,10 @@ import { useSchool } from '../../context/SchoolContext';
 import { AttendanceStatus, GradeReport, SubjectGrade, User } from '../../types';
 import { ReportCardModal } from '../Common/ReportCardModal';
 import { MessagingCenter } from '../Common/MessagingCenter';
+import { OnlineExamQuiz } from '../Features/OnlineExamQuiz';
+import { AiStudyAndTeacherAssistant } from '../Features/AiStudyAndTeacherAssistant';
+import { ClassRoutineAndExamSchedule } from '../Features/ClassRoutineAndExamSchedule';
+import { SmsWhatsAppGateway } from '../Features/SmsWhatsAppGateway';
 import {
   Calendar,
   CheckCircle2,
@@ -17,7 +21,10 @@ import {
   Sparkles,
   Users,
   CheckCheck,
-  AlertCircle
+  AlertCircle,
+  FileCheck,
+  Bot,
+  MessageSquare
 } from 'lucide-react';
 
 export const TeacherPortal: React.FC = () => {
@@ -33,7 +40,17 @@ export const TeacherPortal: React.FC = () => {
     sendMessage,
   } = useSchool();
 
-  const [activeTab, setActiveTab] = useState<'attendance' | 'gradebook' | 'schedule' | 'assignments' | 'messaging'>('attendance');
+  const [activeTab, setActiveTab] = useState<
+    | 'attendance'
+    | 'gradebook'
+    | 'schedule'
+    | 'ai_assistant'
+    | 'quiz_creator'
+    | 'routine_maker'
+    | 'sms_alerts'
+    | 'assignments'
+    | 'messaging'
+  >('attendance');
 
   // Attendance Register State
   const [selectedDate, setSelectedDate] = useState<string>(() => new Date().toISOString().split('T')[0]);
@@ -235,9 +252,12 @@ export const TeacherPortal: React.FC = () => {
       {/* Tabs */}
       <div className="flex flex-wrap items-center gap-2 pb-2 border-b border-slate-200">
         {[
-          { id: 'attendance', label: '📋 Daily Attendance Register' },
+          { id: 'attendance', label: '📋 Daily Attendance' },
           { id: 'gradebook', label: '📊 Gradebook & Exam Entry' },
-          { id: 'schedule', label: '🗓️ My Timetable & Routine' },
+          { id: 'ai_assistant', label: '🤖 AI Question & Lesson Planner' },
+          { id: 'quiz_creator', label: '📝 Online Exam / Quiz Creator' },
+          { id: 'routine_maker', label: '🗓️ Class Routine & Timetable' },
+          { id: 'sms_alerts', label: '📱 Absence SMS & Alerts' },
           { id: 'assignments', label: '📤 Dispatch Assignments' },
           { id: 'messaging', label: '💬 Messages & Notices' },
         ].map((tab) => (
@@ -678,7 +698,19 @@ export const TeacherPortal: React.FC = () => {
         </div>
       )}
 
-      {/* Tab 5: Messaging */}
+      {/* Tab 5: AI Assistant */}
+      {activeTab === 'ai_assistant' && <AiStudyAndTeacherAssistant defaultMode="teacher" />}
+
+      {/* Tab 6: Online Quiz Creator */}
+      {activeTab === 'quiz_creator' && <OnlineExamQuiz />}
+
+      {/* Tab 7: Routine & Timetable */}
+      {activeTab === 'routine_maker' && <ClassRoutineAndExamSchedule />}
+
+      {/* Tab 8: SMS & Broadcast Alerts */}
+      {activeTab === 'sms_alerts' && <SmsWhatsAppGateway />}
+
+      {/* Tab 9: Messaging */}
       {activeTab === 'messaging' && <MessagingCenter />}
 
       {/* Transcript Preview Modal */}
