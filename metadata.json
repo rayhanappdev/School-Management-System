@@ -1,0 +1,6 @@
+{
+  "name": "Apex Academy & School Management System",
+  "description": "Comprehensive institutional school website and management system with dedicated portals for Students, Teachers, Principals, and Admins, featuring enrollment, attendance tracking, grading reports, automated messaging, and real-time analytics.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
